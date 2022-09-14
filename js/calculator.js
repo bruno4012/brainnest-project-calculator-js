@@ -1,30 +1,94 @@
-
 const display = document.getElementById('display');
-const keyBtn = document.querySelectorAll('[id*=key]');
-const clearBtn = document.getElementById("clear").addEventListener("click", clear);
-const equalBtn = document.getElementById("equal").addEventListener("click", calculate);
+const numbers = document.querySelectorAll('[id*=key]');
+const operators = document.querySelectorAll('[id*=operator]');
 
-// inser number to div display
-const updateDisplay =(text) =>{
-    display.textContent += text
-}
+let newNumber = true;
+let operator;
+let numberBefore;
+
+const operacaoPendente = () => operator !== undefined;
+
+const calcular = () => {
+    if (operacaoPendente()) {
+        const momentNumber = parseFloat(display.textContent.replace('.','').replace(',', '.'));
+        newNumber = true;
+        const result = eval(`${numberBefore}${operator}${momentNumber}`);
+        updateDisplay(result);
+    }
+};
+
+const updateDisplay = (txt) => {
+    if (newNumber) {
+        display.textContent = txt;
+        newNumber = false;
+    } else {
+        display.textContent += txt;
+    }
+    document.querySelector('#equal').focus();
+};
+
 const insertNumber = (e) => updateDisplay(e.target.textContent);
-keyBtn.forEach((numero) => numero.addEventListener('click', insertNumber));
+numbers.forEach((number) => number.addEventListener('click', insertNumber));
 
-// get number from display 
-function calculate(){
-    let displayVal = document.getElementById('display').textContent;
-    // calculating information from display
-    calc = eval(displayVal)
-    // print on display resolt 
-    display.innerHTML = calc;
+const selecionarOperador = (e) => {
+    if (!newNumber) {
+        calcular();
+        newNumber = true;
+        operator = e.target.textContent;
+        numberBefore = parseFloat(display.textContent.replace('.','').replace(',', '.'));
+    }
+};
+operators.forEach((operator) =>
+    operator.addEventListener('click', selecionarOperador)
+);
 
-}
-function clear(){
-    display.innerHTML = "";
-    // console.log('clicked')
-}
-// set keyboard allowed key arr
+const activeEqual = () => {
+    calcular();
+    operator = undefined;
+};
+document.getElementById('equal').addEventListener('click', activeEqual);
+
+const cleanDisplay = () => (window.location.reload());
+document
+    .getElementById('cleanDisplay')
+    .addEventListener('click', cleanDisplay);
+
+const cleanCalc = () => {
+    cleanDisplay();
+    operator = undefined;
+    newNumber = true;
+    numberBefore = undefined;
+};
+document
+    .getElementById('cleanCalc')
+    .addEventListener('click', cleanCalc);
+
+const removeLastNum = () =>
+    (display.textContent = display.textContent.slice(0, -1));
+document
+    .getElementById('backspace')
+    .addEventListener('click', removeLastNum);
+
+const invert = () => {
+    newNumber = true;
+    updateDisplay(display.textContent * -1);
+};
+document.getElementById('change').addEventListener('click', invert);
+
+
+const existDecimal = () => display.textContent.indexOf(',') !== -1;
+const existValue = () => display.textContent.length > 0;
+const inserirDecimal = () => {
+    if (!existDecimal()) {
+        if (newNumber) {
+            updateDisplay('0,');
+        } else {
+            updateDisplay(',');
+        }
+    }
+};
+document.getElementById('decimal').addEventListener('click', inserirDecimal);
+
 const keyboardMap = {
     0: 'key0',
     1: 'key1',
@@ -36,15 +100,18 @@ const keyboardMap = {
     7: 'key7',
     8: 'key8',
     9: 'key9',
-    '/': 'keyDiv',
-    '*': 'keyX',
-    '-': 'keySub',
-    '+': 'keyAdd',
+    '/': 'operatorDiv',
+    '*': 'operadorMultip',
+    '-': 'operatorSub',
+    '+': 'operatorAdd',
     '=': 'equal',
     Enter: 'equal',
-    c: 'clear',
-    '.': 'keyDot',
+    Backspace: 'backspace',
+    c: 'cleanDisplay',
+    Escape: 'cleanCalc',
+    ',': 'decimal',
 };
+
 
 const keyMap = (e) => {
     const key = e.key;
